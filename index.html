@@ -1,12 +1,9 @@
-<?php
-session_start();
-require_once __DIR__ . '/includes/config.php';
-?><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><?php echo htmlspecialchars(APP_NAME); ?> – Professional AC &amp; Refrigeration Services</title>
+  <title>CoolBreeze HVAC – Professional AC &amp; Refrigeration Services</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -1387,7 +1384,7 @@ require_once __DIR__ . '/includes/config.php';
         <li><a href="#booking">Booking</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
-        <li><a href="track.php">Track Booking</a></li>
+        <li><a href="track.html">Track Booking</a></li>
       </ul>
 
       <a href="#booking" class="btn btn-primary nav-cta">Book Now</a>
@@ -1406,7 +1403,7 @@ require_once __DIR__ . '/includes/config.php';
     <li><a href="#booking" onclick="closeMobileMenu()">Booking</a></li>
     <li><a href="#about" onclick="closeMobileMenu()">About</a></li>
     <li><a href="#contact" onclick="closeMobileMenu()">Contact</a></li>
-    <li><a href="track.php" onclick="closeMobileMenu()">Track Booking</a></li>
+    <li><a href="track.html" onclick="closeMobileMenu()">Track Booking</a></li>
   </ul>
   <a href="#booking" class="btn btn-primary" onclick="closeMobileMenu()" style="width:100%;justify-content:center;">Book a Service</a>
 </div>
@@ -1907,7 +1904,7 @@ require_once __DIR__ . '/includes/config.php';
         <ul class="footer-links">
           <li><a href="#">FAQs</a></li>
           <li><a href="#">Warranty Info</a></li>
-          <li><a href="track.php">Track Booking</a></li>
+          <li><a href="track.html">Track Booking</a></li>
           <li><a href="#">Privacy Policy</a></li>
           <li><a href="#">Terms of Service</a></li>
         </ul>
@@ -1915,7 +1912,7 @@ require_once __DIR__ . '/includes/config.php';
     </div>
 
     <div class="footer-bottom">
-      <div>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars(APP_NAME); ?>. All rights reserved.</div>
+      <div>&copy; 2026 CoolBreeze HVAC. All rights reserved.</div>
       <div>🏅 EPA Certified &nbsp;·&nbsp; 🔒 Licensed &amp; Insured &nbsp;·&nbsp; ⭐ NATE Certified</div>
     </div>
   </div>
@@ -2018,7 +2015,7 @@ require_once __DIR__ . '/includes/config.php';
     });
   });
 
-  // ===== FORM SUBMIT – FETCH TO api/book.php =====
+  // ===== FORM SUBMIT – POST TO /api/book =====
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -2054,7 +2051,7 @@ require_once __DIR__ . '/includes/config.php';
     submitBtn.innerHTML = '<span class="spinner"></span> Submitting…';
 
     try {
-      const res  = await fetch('api/book.php', {
+      const res  = await fetch('/api/book', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
@@ -2100,7 +2097,7 @@ require_once __DIR__ . '/includes/config.php';
       // Auto-redirect to confirmation page after 2 seconds
       const ref = data.reference;
       setTimeout(() => {
-        window.location.href = 'confirmation.php?ref=' + encodeURIComponent(ref);
+        window.location.href = '/confirmation.html?ref=' + encodeURIComponent(ref);
       }, 2000);
 
       // Reset form

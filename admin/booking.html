@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking – Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a237e; --navy-dark: #0d1257; --navy-light: #283593;
+      --cyan: #00bcd4; --cyan-dark: #0097a7; --cyan-light: #e0f7fa;
+      --white: #ffffff;
+      --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+      --gray-400: #94a3b8; --gray-600: #475569; --gray-800: #1e293b;
+      --shadow: 0 4px 16px rgba(0,0,0,.08); --shadow-lg: 0 10px 40px rgba(0,0,0,.12);
+      --radius: 10px; --radius-lg: 16px; --transition: .25s ease;
+    }
+    body {
+      font-family: 'Poppins', sans-serif; font-size: 14px;
+      background: var(--gray-50); color: var(--gray-800); min-height: 100vh;
+    }
+
+    /* ===== TOP NAV ===== */
+    .topnav {
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy));
+      height: 64px; display: flex; align-items: center;
+      padding: 0 32px; gap: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+    .topnav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.05rem; font-weight: 800; color: var(--white); margin-right: 16px;
+    }
+    .topnav-logo .icon {
+      width: 34px; height: 34px; background: var(--cyan); border-radius: 9px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .topnav-logo span { color: var(--cyan); }
+    .topnav-link {
+      color: rgba(255,255,255,.75); font-size: .87rem; font-weight: 600;
+      padding: 7px 14px; border-radius: 8px; transition: var(--transition); text-decoration: none;
+    }
+    .topnav-link:hover { background: rgba(255,255,255,.12); color: var(--white); }
+    .topnav-spacer { flex: 1; }
+    .topnav-logout {
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      color: var(--white); font-family: 'Poppins', sans-serif;
+      font-size: .82rem; font-weight: 600; padding: 7px 16px; border-radius: 8px;
+      cursor: pointer; transition: var(--transition); text-decoration: none;
+    }
+    .topnav-logout:hover { background: rgba(255,255,255,.2); }
+
+    /* ===== MAIN ===== */
+    .main { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      font-size: .82rem; color: var(--gray-400);
+      margin-bottom: 20px; display: flex; align-items: center; gap: 6px;
+    }
+    .breadcrumb a { color: var(--cyan-dark); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* Page heading */
+    .page-heading {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px; margin-bottom: 28px;
+    }
+    .page-title { font-size: 1.4rem; font-weight: 800; color: var(--navy); }
+    .page-ref   { font-size: .9rem; color: var(--gray-400); font-family: 'Courier New', monospace; margin-top: 4px; }
+
+    .status-badge {
+      display: inline-block; padding: 6px 18px; border-radius: 50px;
+      font-size: .82rem; font-weight: 700;
+    }
+
+    /* ===== GRID LAYOUT ===== */
+    .content-grid {
+      display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start;
+    }
+    @media (max-width: 860px) { .content-grid { grid-template-columns: 1fr; } }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--white); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow); border: 1px solid var(--gray-200);
+      overflow: hidden; margin-bottom: 20px;
+    }
+    .card:last-child { margin-bottom: 0; }
+    .card-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-header h3 { font-size: .9rem; font-weight: 700; color: var(--navy); }
+    .card-body { padding: 24px; }
+
+    /* Detail rows */
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; }
+    .detail-item.full { grid-column: 1 / -1; }
+    .detail-label { font-size: .76rem; color: var(--gray-400); font-weight: 600;
+                    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .detail-value { font-size: .9rem; color: var(--gray-800); font-weight: 600; }
+
+    /* ===== UPDATE FORM ===== */
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-group label { font-size: .82rem; font-weight: 600; color: var(--gray-600); }
+    .form-control {
+      padding: 11px 14px; font-family: 'Poppins', sans-serif; font-size: .87rem;
+      color: var(--gray-800); background: var(--gray-50);
+      border: 1.5px solid var(--gray-200); border-radius: 8px; outline: none;
+      transition: var(--transition); -webkit-appearance: none;
+    }
+    .form-control:focus { border-color: var(--cyan); background: var(--white);
+                          box-shadow: 0 0 0 3px rgba(0,188,212,.12); }
+    textarea.form-control { resize: vertical; min-height: 110px; }
+
+    .btn-save {
+      width: 100%; padding: 13px; background: var(--cyan); color: var(--white);
+      font-family: 'Poppins', sans-serif; font-size: .9rem; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer; transition: var(--transition);
+      box-shadow: 0 4px 16px rgba(0,188,212,.3); margin-top: 4px;
+    }
+    .btn-save:hover { background: var(--cyan-dark); transform: translateY(-2px); }
+    .btn-save:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; background: transparent; color: var(--navy);
+      font-family: 'Poppins', sans-serif; font-size: .87rem; font-weight: 600;
+      border: 2px solid var(--gray-200); border-radius: 10px; cursor: pointer;
+      transition: var(--transition); text-decoration: none; margin-bottom: 24px;
+    }
+    .btn-back:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
+
+    /* Alerts */
+    .alert {
+      padding: 14px 18px; border-radius: 10px; font-size: .88rem;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .alert-error   { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+    /* History row */
+    .history-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--gray-100);
+      font-size: .85rem;
+    }
+    .history-row:last-child { border-bottom: none; }
+    .history-label { color: var(--gray-400); font-weight: 500; }
+    .history-value { color: var(--gray-800); font-weight: 600; }
+
+    .link-track {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--cyan-dark); font-weight: 600; font-size: .85rem;
+      text-decoration: none; transition: var(--transition);
+    }
+    .link-track:hover { color: var(--cyan); }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-logo">
+    <div class="icon">❄️</div>
+    CoolBreeze <span>HVAC</span>
+  </div>
+  <a href="index.html" class="topnav-link">📊 Dashboard</a>
+  <a href="index.html" class="topnav-link">📋 Bookings</a>
+  <a href="../index.html" class="topnav-link" target="_blank">🌐 View Site</a>
+  <div class="topnav-spacer"></div>
+  <a href="#" class="topnav-logout" id="logout-btn">🚪 Logout</a>
+</nav>
+
+<div class="main" id="main-content">
+  <!-- Populated by JS -->
+  <div style="text-align:center;padding:80px 20px;color:var(--gray-400);">Loading booking…</div>
+</div>
+
+<script>
+(function () {
+  const STATUS_CONFIG = {
+    pending:     { label: 'Pending',     bg: '#fff7ed', color: '#c2410c' },
+    confirmed:   { label: 'Confirmed',   bg: '#eff6ff', color: '#1d4ed8' },
+    in_progress: { label: 'In Progress', bg: '#f5f3ff', color: '#6d28d9' },
+    completed:   { label: 'Completed',   bg: '#f0fdf4', color: '#166534' },
+    cancelled:   { label: 'Cancelled',   bg: '#fef2f2', color: '#991b1b' },
+  };
+
+  // ── Auth check ───────────────────────────────────────────────────────────────
+  const token = localStorage.getItem('hvac_token');
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // ── Logout ───────────────────────────────────────────────────────────────────
+  document.getElementById('logout-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+    localStorage.removeItem('hvac_token');
+    window.location.href = 'login.html';
+  });
+
+  // ── Get booking ID from URL ──────────────────────────────────────────────────
+  const bookingId = new URLSearchParams(window.location.search).get('id');
+  if (!bookingId) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // ── Escape HTML ──────────────────────────────────────────────────────────────
+  function esc(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Format dates ─────────────────────────────────────────────────────────────
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + (dateStr.length === 10 ? 'T00:00:00' : ''));
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function formatDateLong(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function formatDateTime(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // ── nl2br ────────────────────────────────────────────────────────────────────
+  function nl2br(str) {
+    return esc(str).replace(/\n/g, '<br>');
+  }
+
+  // ── Render the full page content ─────────────────────────────────────────────
+  function renderPage(booking, alertHtml) {
+    const cfg = STATUS_CONFIG[booking.status] || { label: booking.status, bg: '#f1f5f9', color: '#475569' };
+    const dateDisp = formatDateLong(booking.preferred_date);
+
+    document.title = 'Booking ' + booking.reference + ' – Admin';
+
+    // Build status options
+    let statusOptions = '';
+    Object.entries(STATUS_CONFIG).forEach(function ([key, c]) {
+      statusOptions += '<option value="' + key + '"' + (booking.status === key ? ' selected' : '') + '>'
+        + c.label + '</option>';
+    });
+
+    // Customer notes row (conditional)
+    const notesRow = booking.notes
+      ? '<div class="detail-item full"><div class="detail-label">Customer Notes</div>'
+        + '<div class="detail-value">' + nl2br(booking.notes) + '</div></div>'
+      : '';
+
+    const html = `
+      <div class="breadcrumb">
+        <a href="index.html">Dashboard</a> ›
+        <strong style="color:var(--gray-600);">${esc(booking.reference)}</strong>
+      </div>
+
+      <a href="index.html" class="btn-back">← Back to Dashboard</a>
+
+      ${alertHtml || ''}
+
+      <div class="page-heading">
+        <div>
+          <div class="page-title">Booking Details</div>
+          <div class="page-ref">${esc(booking.reference)}</div>
+        </div>
+        <span class="status-badge" id="heading-badge"
+              style="background:${cfg.bg};color:${cfg.color};">
+          ${esc(cfg.label)}
+        </span>
+      </div>
+
+      <div class="content-grid">
+
+        <!-- Left column -->
+        <div>
+          <!-- Service Details -->
+          <div class="card">
+            <div class="card-header"><h3>📋 Service Details</h3></div>
+            <div class="card-body">
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Service Type</div>
+                  <div class="detail-value">${esc(booking.service_type)}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Appointment Date</div>
+                  <div class="detail-value">${esc(dateDisp)}</div>
+                </div>
+                <div class="detail-item full">
+                  <div class="detail-label">Time Slot</div>
+                  <div class="detail-value">${esc(booking.time_slot)}</div>
+                </div>
+                <div class="detail-item full">
+                  <div class="detail-label">Service Address</div>
+                  <div class="detail-value">${esc(booking.address)}</div>
+                </div>
+                ${notesRow}
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="card">
+            <div class="card-header"><h3>👤 Customer Information</h3></div>
+            <div class="card-body">
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Full Name</div>
+                  <div class="detail-value">${esc(booking.customer_name)}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Phone</div>
+                  <div class="detail-value">${esc(booking.phone)}</div>
+                </div>
+                <div class="detail-item full">
+                  <div class="detail-label">Email</div>
+                  <div class="detail-value">${esc(booking.email)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking History -->
+          <div class="card">
+            <div class="card-header"><h3>🕐 Booking History</h3></div>
+            <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+              <div class="history-row">
+                <span class="history-label">Booking Created</span>
+                <span class="history-value">${esc(formatDateTime(booking.created_at))}</span>
+              </div>
+              <div class="history-row">
+                <span class="history-label">Last Updated</span>
+                <span class="history-value">${esc(formatDateTime(booking.updated_at))}</span>
+              </div>
+              <div class="history-row">
+                <span class="history-label">Current Status</span>
+                <span class="history-value">
+                  <span class="status-badge" style="background:${cfg.bg};color:${cfg.color};">
+                    ${esc(cfg.label)}
+                  </span>
+                </span>
+              </div>
+              <div class="history-row">
+                <span class="history-label">Customer Tracking</span>
+                <span class="history-value">
+                  <a href="../track.html?ref=${encodeURIComponent(booking.reference)}"
+                     class="link-track" target="_blank">
+                    🔍 View Tracker
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column: update form -->
+        <div>
+          <div class="card">
+            <div class="card-header"><h3>✏️ Update Booking</h3></div>
+            <div class="card-body">
+              <form id="update-form">
+                <div class="form-group">
+                  <label for="status">Status</label>
+                  <select name="status" id="status" class="form-control">
+                    ${statusOptions}
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="admin_notes">Admin Notes</label>
+                  <textarea name="admin_notes" id="admin_notes" class="form-control"
+                            placeholder="Internal notes for your team, or a message to the customer…">${esc(booking.admin_notes || '')}</textarea>
+                </div>
+                <button type="submit" class="btn-save" id="save-btn">💾 Save Changes</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="card">
+            <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+              <a href="../confirmation.html?ref=${encodeURIComponent(booking.reference)}"
+                 target="_blank"
+                 style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;font-size:.85rem;font-weight:600;color:var(--navy);text-decoration:none;transition:var(--transition);">
+                📄 View Customer Confirmation
+              </a>
+              <a href="../track.html?ref=${encodeURIComponent(booking.reference)}"
+                 target="_blank"
+                 style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;font-size:.85rem;font-weight:600;color:var(--navy);text-decoration:none;transition:var(--transition);">
+                🔍 View Tracking Page
+              </a>
+              <a href="index.html"
+                 style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;font-size:.85rem;font-weight:600;color:var(--navy);text-decoration:none;transition:var(--transition);">
+                ← Back to All Bookings
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.content-grid -->
+    `;
+
+    document.getElementById('main-content').innerHTML = html;
+
+    // Attach update form handler
+    document.getElementById('update-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      saveBooking(booking);
+    });
+  }
+
+  // ── Save booking ─────────────────────────────────────────────────────────────
+  async function saveBooking(booking) {
+    const saveBtn   = document.getElementById('save-btn');
+    const newStatus = document.getElementById('status').value;
+    const adminNotes = document.getElementById('admin_notes').value;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      const res = await fetch('/api/admin/booking?id=' + encodeURIComponent(bookingId), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+        },
+        body: JSON.stringify({ status: newStatus, admin_notes: adminNotes }),
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem('hvac_token');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const updated = data.booking || Object.assign({}, booking, { status: newStatus, admin_notes: adminNotes });
+        renderPage(updated, '<div class="alert alert-success">✅ Booking updated successfully.</div>');
+      } else {
+        const msg = data.message || data.error || 'Failed to save changes.';
+        renderPage(booking, '<div class="alert alert-error">⚠️ ' + esc(msg) + '</div>');
+      }
+    } catch (err) {
+      renderPage(booking, '<div class="alert alert-error">⚠️ Network error. Please try again.</div>');
+    }
+  }
+
+  // ── Load booking ─────────────────────────────────────────────────────────────
+  async function loadBooking() {
+    try {
+      const res = await fetch('/api/admin/booking?id=' + encodeURIComponent(bookingId), {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem('hvac_token');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      if (res.status === 404 || res.status === 400) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const data = await res.json();
+      const booking = data.booking || data;
+
+      if (!booking || !booking.id) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      renderPage(booking, '');
+    } catch (err) {
+      document.getElementById('main-content').innerHTML =
+        '<div style="text-align:center;padding:80px 20px;color:var(--gray-400);">⚠️ Failed to load booking. <a href="index.html">Back to Dashboard</a></div>';
+    }
+  }
+
+  loadBooking();
+})();
+</script>
+</body>
+</html>

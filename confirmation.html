@@ -1,48 +1,9 @@
-<?php
-session_start();
-require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/db.php';
-
-$ref = trim($_GET['ref'] ?? '');
-
-if ($ref === '') {
-    header('Location: index.php');
-    exit;
-}
-
-// Look up the booking
-$db   = getDB();
-$stmt = $db->prepare(
-    'SELECT reference, service_type, customer_name, phone, email,
-            preferred_date, time_slot, address, notes, status, created_at
-     FROM bookings WHERE reference = ?'
-);
-$stmt->execute([$ref]);
-$booking = $stmt->fetch();
-
-if (!$booking) {
-    header('Location: index.php');
-    exit;
-}
-
-// Format date
-$dateObj = DateTime::createFromFormat('Y-m-d', $booking['preferred_date']);
-$dateStr = $dateObj ? $dateObj->format('l, F j, Y') : htmlspecialchars($booking['preferred_date']);
-
-$statusLabels = [
-    'pending'     => 'Pending Confirmation',
-    'confirmed'   => 'Confirmed',
-    'in_progress' => 'In Progress',
-    'completed'   => 'Completed',
-    'cancelled'   => 'Cancelled',
-];
-$statusLabel = $statusLabels[$booking['status']] ?? ucfirst($booking['status']);
-?><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Booking Confirmed – <?php echo htmlspecialchars(APP_NAME); ?></title>
+  <title>Booking Confirmed – CoolBreeze HVAC</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -273,6 +234,23 @@ $statusLabel = $statusLabels[$booking['status']] ?? ucfirst($booking['status']);
     }
     .info-note strong { font-weight: 700; }
 
+    /* Loading state */
+    .loading-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--gray-400);
+    }
+    .spinner {
+      display: inline-block;
+      width: 36px; height: 36px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* ===== FOOTER ===== */
     .site-footer {
       background: var(--navy-dark);
@@ -297,127 +275,187 @@ $statusLabel = $statusLabels[$booking['status']] ?? ucfirst($booking['status']);
 <!-- Header -->
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.php" class="nav-logo">
+    <a href="/index.html" class="nav-logo">
       <div class="logo-icon">❄️</div>
       <div class="logo-text">CoolBreeze <span>HVAC</span></div>
     </a>
     <div class="header-links">
-      <a href="index.php">Home</a>
-      <a href="track.php">Track Booking</a>
+      <a href="/index.html">Home</a>
+      <a href="/track.html">Track Booking</a>
     </div>
   </div>
 </header>
 
 <!-- Hero -->
-<div class="confirm-hero">
+<div class="confirm-hero" id="confirm-hero">
   <div class="check-circle">✅</div>
   <h1 class="confirm-title">Booking Confirmed!</h1>
-  <p class="confirm-sub">
-    Thank you, <strong style="color:var(--cyan);"><?php echo htmlspecialchars($booking['customer_name']); ?></strong>!
-    Your service request has been received. Our team will call you within 1 hour to confirm.
-  </p>
-  <div class="ref-badge"><?php echo htmlspecialchars($booking['reference']); ?></div>
+  <p class="confirm-sub" id="confirm-sub">Loading your booking details…</p>
+  <div class="ref-badge" id="ref-badge">—</div>
 </div>
 
 <!-- Card -->
 <div class="container">
-  <div class="confirm-card">
-
-    <div class="card-section">
-      <div class="card-section-title">Booking Details</div>
-      <div class="detail-grid">
-        <div class="detail-item">
-          <div class="detail-label">Reference Number</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['reference']); ?></div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Status</div>
-          <div class="detail-value">
-            <span class="status-badge status-<?php echo htmlspecialchars($booking['status']); ?>">
-              <?php echo htmlspecialchars($statusLabel); ?>
-            </span>
-          </div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Service Type</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['service_type']); ?></div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Appointment Date</div>
-          <div class="detail-value"><?php echo htmlspecialchars($dateStr); ?></div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Time Slot</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['time_slot']); ?></div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Booked On</div>
-          <div class="detail-value">
-            <?php
-              $created = new DateTime($booking['created_at']);
-              echo htmlspecialchars($created->format('M j, Y g:i A'));
-            ?>
-          </div>
-        </div>
-        <div class="detail-item full">
-          <div class="detail-label">Service Address</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['address']); ?></div>
-        </div>
-        <?php if (!empty($booking['notes'])): ?>
-        <div class="detail-item full">
-          <div class="detail-label">Additional Notes</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['notes']); ?></div>
-        </div>
-        <?php endif; ?>
-      </div>
+  <div class="confirm-card" id="confirm-card">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading booking details…</p>
     </div>
-
-    <div class="card-section">
-      <div class="card-section-title">Customer Information</div>
-      <div class="detail-grid">
-        <div class="detail-item">
-          <div class="detail-label">Full Name</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['customer_name']); ?></div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Phone</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['phone']); ?></div>
-        </div>
-        <div class="detail-item full">
-          <div class="detail-label">Email</div>
-          <div class="detail-value"><?php echo htmlspecialchars($booking['email']); ?></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card-section">
-      <div class="info-note">
-        <strong>What happens next?</strong> Our team will review your request and call you at
-        <strong><?php echo htmlspecialchars($booking['phone']); ?></strong> within 1 hour to confirm the appointment.
-        You can track your booking status anytime using your reference number.
-      </div>
-    </div>
-
-    <div class="confirm-actions">
-      <a href="track.php?ref=<?php echo urlencode($booking['reference']); ?>" class="btn btn-primary">
-        🔍 Track This Booking
-      </a>
-      <a href="index.php" class="btn btn-outline">
-        ← Back to Home
-      </a>
-      <a href="index.php#booking" class="btn btn-outline">
-        📅 Book Another Service
-      </a>
-    </div>
-
   </div>
 </div>
 
 <!-- Footer -->
 <footer class="site-footer">
-  &copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars(APP_NAME); ?>.
+  &copy; 2026 CoolBreeze HVAC.
   All rights reserved. &nbsp;·&nbsp; 🏅 EPA Certified &nbsp;·&nbsp; 🔒 Licensed &amp; Insured
 </footer>
 
+<script>
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function formatDate(dateStr) {
+    const dateObj = new Date(dateStr + 'T12:00:00');
+    return dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function formatCreatedAt(createdStr) {
+    const d = new Date(createdStr.replace(' ', 'T'));
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+           ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  const statusLabels = {
+    pending:     'Pending Confirmation',
+    confirmed:   'Confirmed',
+    in_progress: 'In Progress',
+    completed:   'Completed',
+    cancelled:   'Cancelled',
+  };
+
+  async function loadBooking() {
+    const ref = new URLSearchParams(window.location.search).get('ref');
+
+    if (!ref) {
+      window.location.href = '/';
+      return;
+    }
+
+    try {
+      const res  = await fetch('/api/track?ref=' + encodeURIComponent(ref));
+      const data = await res.json();
+
+      if (!data.success || !data.booking) {
+        window.location.href = '/';
+        return;
+      }
+
+      const b = data.booking;
+      const statusLabel = statusLabels[b.status] || b.status;
+      const dateStr     = formatDate(b.preferred_date);
+      const createdStr  = formatCreatedAt(b.created_at);
+
+      // Update hero
+      document.getElementById('confirm-sub').innerHTML =
+        'Thank you, <strong style="color:var(--cyan);">' + escHtml(b.customer_name) + '</strong>! ' +
+        'Your service request has been received. Our team will call you within 1 hour to confirm.';
+      document.getElementById('ref-badge').textContent = b.reference;
+
+      // Build card HTML
+      const notesRow = b.notes ? `
+        <div class="detail-item full">
+          <div class="detail-label">Additional Notes</div>
+          <div class="detail-value">${escHtml(b.notes)}</div>
+        </div>` : '';
+
+      document.getElementById('confirm-card').innerHTML = `
+        <div class="card-section">
+          <div class="card-section-title">Booking Details</div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Reference Number</div>
+              <div class="detail-value">${escHtml(b.reference)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Status</div>
+              <div class="detail-value">
+                <span class="status-badge status-${escHtml(b.status)}">${escHtml(statusLabel)}</span>
+              </div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Service Type</div>
+              <div class="detail-value">${escHtml(b.service_type)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Appointment Date</div>
+              <div class="detail-value">${escHtml(dateStr)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Time Slot</div>
+              <div class="detail-value">${escHtml(b.time_slot)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Booked On</div>
+              <div class="detail-value">${escHtml(createdStr)}</div>
+            </div>
+            <div class="detail-item full">
+              <div class="detail-label">Service Address</div>
+              <div class="detail-value">${escHtml(b.address)}</div>
+            </div>
+            ${notesRow}
+          </div>
+        </div>
+
+        <div class="card-section">
+          <div class="card-section-title">Customer Information</div>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Full Name</div>
+              <div class="detail-value">${escHtml(b.customer_name)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Phone</div>
+              <div class="detail-value">${escHtml(b.phone)}</div>
+            </div>
+            <div class="detail-item full">
+              <div class="detail-label">Email</div>
+              <div class="detail-value">${escHtml(b.email)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-section">
+          <div class="info-note">
+            <strong>What happens next?</strong> Our team will review your request and call you at
+            <strong>${escHtml(b.phone)}</strong> within 1 hour to confirm the appointment.
+            You can track your booking status anytime using your reference number.
+          </div>
+        </div>
+
+        <div class="confirm-actions">
+          <a href="/track.html?ref=${encodeURIComponent(b.reference)}" class="btn btn-primary">
+            🔍 Track This Booking
+          </a>
+          <a href="/index.html" class="btn btn-outline">
+            ← Back to Home
+          </a>
+          <a href="/index.html#booking" class="btn btn-outline">
+            📅 Book Another Service
+          </a>
+        </div>
+      `;
+
+    } catch (err) {
+      window.location.href = '/';
+    }
+  }
+
+  loadBooking();
+</script>
 </body>
 </html>
