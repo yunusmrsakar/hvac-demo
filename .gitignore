@@ -1,0 +1,13 @@
+# SQLite database
+data/*.db
+data/*.sqlite
+
+# PHP / system files
+.DS_Store
+*.log
+*.swp
+*.swo
+
+# Environment / secrets
+.env
+config.local.php

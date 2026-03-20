@@ -1,0 +1,541 @@
+<?php
+session_start();
+require_once __DIR__ . '/includes/config.php';
+
+// Pre-fill ref from query string if provided
+$prefilledRef = htmlspecialchars(trim($_GET['ref'] ?? ''));
+?><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Booking – <?php echo htmlspecialchars(APP_NAME); ?></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a237e; --navy-dark: #0d1257; --navy-light: #283593;
+      --cyan: #00bcd4; --cyan-dark: #0097a7; --cyan-light: #e0f7fa;
+      --white: #ffffff;
+      --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+      --gray-400: #94a3b8; --gray-600: #475569; --gray-800: #1e293b;
+      --shadow-lg: 0 10px 40px rgba(0,0,0,.15);
+      --radius: 12px; --radius-lg: 20px;
+      --transition: .3s cubic-bezier(.4,0,.2,1);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      color: var(--gray-800);
+      background: var(--gray-50);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 700px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== HEADER ===== */
+    .site-header {
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy));
+    }
+    .header-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 68px; max-width: 1140px; margin: 0 auto; padding: 0 24px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.15rem; font-weight: 700; color: var(--white);
+    }
+    .logo-icon {
+      width: 36px; height: 36px; background: var(--cyan);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .logo-text span { color: var(--cyan); }
+    .header-links { display: flex; gap: 12px; }
+    .header-links a {
+      font-size: .85rem; font-weight: 500; color: rgba(255,255,255,.8);
+      padding: 7px 14px; border-radius: 8px; transition: var(--transition);
+    }
+    .header-links a:hover { background: rgba(255,255,255,.12); color: var(--white); }
+
+    /* ===== HERO ===== */
+    .track-hero {
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy));
+      padding: 60px 24px 80px; text-align: center;
+    }
+    .track-hero-icon {
+      font-size: 3.5rem; margin-bottom: 20px;
+    }
+    .track-hero h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800;
+      color: var(--white); margin-bottom: 12px;
+    }
+    .track-hero p {
+      font-size: 1rem; color: rgba(255,255,255,.7);
+      max-width: 420px; margin: 0 auto;
+    }
+
+    /* ===== SEARCH CARD ===== */
+    .search-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 40px;
+      margin: -40px auto 0;
+      position: relative; z-index: 2;
+    }
+    .search-label {
+      font-size: .85rem; font-weight: 600;
+      color: var(--gray-600); margin-bottom: 10px;
+    }
+    .search-row {
+      display: flex; gap: 12px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 14px 20px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      color: var(--gray-800);
+      background: var(--gray-50);
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      outline: none;
+      transition: var(--transition);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .search-input:focus {
+      border-color: var(--cyan);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(0,188,212,.12);
+    }
+    .search-input::placeholder { text-transform: none; font-weight: 400; letter-spacing: 0; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: .9rem; font-weight: 600;
+      padding: 13px 26px; border-radius: 50px;
+      border: none; cursor: pointer; transition: var(--transition); white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--cyan); color: var(--white);
+      box-shadow: 0 4px 20px rgba(0,188,212,.35);
+    }
+    .btn-primary:hover { background: var(--cyan-dark); transform: translateY(-2px); }
+    .btn-outline {
+      background: transparent; color: var(--navy);
+      border: 2px solid var(--gray-200);
+    }
+    .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-2px); }
+
+    /* ===== RESULT AREA ===== */
+    #result { margin-top: 32px; }
+
+    .result-error {
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: var(--radius); padding: 20px 24px;
+      color: #991b1b; font-size: .92rem; display: flex; align-items: center; gap: 12px;
+    }
+
+    /* ===== BOOKING RESULT CARD ===== */
+    .booking-result {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .booking-result-header {
+      background: linear-gradient(135deg, var(--navy), var(--navy-light));
+      padding: 24px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+
+    .booking-ref {
+      font-size: .88rem; color: rgba(255,255,255,.6); margin-bottom: 4px;
+    }
+    .booking-service {
+      font-size: 1.2rem; font-weight: 700; color: var(--white);
+    }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-block; padding: 6px 18px;
+      border-radius: 50px; font-size: .82rem; font-weight: 700;
+    }
+    .status-pending    { background: #fff7ed; color: #c2410c; }
+    .status-confirmed  { background: #eff6ff; color: #1d4ed8; }
+    .status-in_progress { background: #f5f3ff; color: #6d28d9; }
+    .status-completed  { background: #f0fdf4; color: #166534; }
+    .status-cancelled  { background: #fef2f2; color: #991b1b; }
+
+    /* ===== STATUS TIMELINE ===== */
+    .timeline-section {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .timeline-title {
+      font-size: .78rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--cyan-dark); margin-bottom: 24px;
+    }
+
+    .timeline {
+      display: flex; align-items: flex-start;
+      gap: 0; position: relative;
+    }
+
+    .timeline-step {
+      flex: 1; text-align: center; position: relative;
+    }
+
+    /* Connecting line between steps */
+    .timeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 50%; right: -50%;
+      height: 3px;
+      background: var(--gray-200);
+      z-index: 0;
+      transition: background .4s;
+    }
+    .timeline-step.done:not(:last-child)::after,
+    .timeline-step.active:not(:last-child)::after {
+      background: var(--cyan);
+    }
+
+    .timeline-dot {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--gray-100);
+      border: 3px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 1.1rem;
+      position: relative; z-index: 1;
+      transition: var(--transition);
+    }
+
+    .timeline-step.done .timeline-dot {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(0,188,212,.35);
+    }
+
+    .timeline-step.active .timeline-dot {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(26,35,126,.35);
+      animation: pulse-dot 1.8s ease-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%   { box-shadow: 0 0 0 0 rgba(26,35,126,.5); }
+      70%  { box-shadow: 0 0 0 10px rgba(26,35,126,0); }
+      100% { box-shadow: 0 0 0 0 rgba(26,35,126,0); }
+    }
+
+    .timeline-step.cancelled .timeline-dot {
+      background: #fef2f2; border-color: #fca5a5; color: #ef4444;
+    }
+
+    .timeline-label {
+      font-size: .75rem; font-weight: 600;
+      color: var(--gray-400); transition: var(--transition);
+    }
+    .timeline-step.done .timeline-label,
+    .timeline-step.active .timeline-label { color: var(--navy); }
+    .timeline-step.cancelled .timeline-label { color: #ef4444; }
+
+    /* ===== DETAILS SECTION ===== */
+    .details-section {
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .details-title {
+      font-size: .78rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--cyan-dark); margin-bottom: 20px;
+    }
+    .details-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px;
+    }
+    .detail-label {
+      font-size: .78rem; color: var(--gray-400); font-weight: 500; margin-bottom: 3px;
+    }
+    .detail-value {
+      font-size: .93rem; color: var(--gray-800); font-weight: 600;
+    }
+    .detail-item.full { grid-column: 1 / -1; }
+
+    /* ===== ACTIONS ===== */
+    .result-actions {
+      padding: 24px 32px;
+      background: var(--gray-50);
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== FOOTER ===== */
+    .site-footer {
+      background: var(--navy-dark);
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 28px 24px; text-align: center; margin-top: 60px;
+      font-size: .82rem; color: rgba(255,255,255,.35);
+    }
+
+    @media (max-width: 600px) {
+      .search-row { flex-direction: column; }
+      .search-card { padding: 28px 20px; }
+      .timeline-label { font-size: .68rem; }
+      .timeline-dot { width: 30px; height: 30px; font-size: .9rem; }
+      .details-grid { grid-template-columns: 1fr; }
+      .details-section, .timeline-section { padding: 24px 20px; }
+      .result-actions { padding: 20px; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.php" class="nav-logo">
+      <div class="logo-icon">❄️</div>
+      <div class="logo-text">CoolBreeze <span>HVAC</span></div>
+    </a>
+    <div class="header-links">
+      <a href="index.php">Home</a>
+      <a href="index.php#booking">Book Service</a>
+    </div>
+  </div>
+</header>
+
+<div class="track-hero">
+  <div class="track-hero-icon">🔍</div>
+  <h1>Track Your Booking</h1>
+  <p>Enter your booking reference number to see the current status of your service appointment.</p>
+</div>
+
+<div class="container">
+  <div class="search-card">
+    <div class="search-label">Booking Reference Number</div>
+    <div class="search-row">
+      <input
+        type="text"
+        class="search-input"
+        id="refInput"
+        placeholder="e.g. CB-X4F2-8371"
+        value="<?php echo $prefilledRef; ?>"
+        maxlength="14"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="btn btn-primary" id="trackBtn" onclick="trackBooking()">
+        🔍 Track
+      </button>
+    </div>
+    <div id="result"></div>
+  </div>
+</div>
+
+<div style="height:60px;"></div>
+
+<footer class="site-footer">
+  &copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars(APP_NAME); ?>.
+  All rights reserved. &nbsp;·&nbsp; 🏅 EPA Certified &nbsp;·&nbsp; 🔒 Licensed &amp; Insured
+</footer>
+
+<script>
+  // Auto-track if ref is pre-filled
+  window.addEventListener('DOMContentLoaded', () => {
+    const val = document.getElementById('refInput').value.trim();
+    if (val) trackBooking();
+  });
+
+  // Allow Enter key
+  document.getElementById('refInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') trackBooking();
+  });
+
+  async function trackBooking() {
+    const ref = document.getElementById('refInput').value.trim().toUpperCase();
+    const result = document.getElementById('result');
+    const btn = document.getElementById('trackBtn');
+
+    if (!ref) {
+      result.innerHTML = '<div class="result-error">❗ Please enter a booking reference number.</div>';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Looking up…';
+    result.innerHTML = '';
+
+    try {
+      const res  = await fetch('api/track.php?ref=' + encodeURIComponent(ref));
+      const data = await res.json();
+
+      if (!data.success) {
+        result.innerHTML = `<div class="result-error">❌ ${escHtml(data.error || 'Booking not found.')}</div>`;
+        return;
+      }
+
+      renderBooking(data.booking);
+
+    } catch (e) {
+      result.innerHTML = '<div class="result-error">⚠️ Network error. Please try again.</div>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '🔍 Track';
+    }
+  }
+
+  function renderBooking(b) {
+    const statusLabels = {
+      pending:     'Pending Confirmation',
+      confirmed:   'Confirmed',
+      in_progress: 'In Progress',
+      completed:   'Completed',
+      cancelled:   'Cancelled',
+    };
+
+    const steps = [
+      { key: 'pending',     icon: '📋', label: 'Pending' },
+      { key: 'confirmed',   icon: '✅', label: 'Confirmed' },
+      { key: 'in_progress', icon: '🔧', label: 'In Progress' },
+      { key: 'completed',   icon: '🎉', label: 'Completed' },
+    ];
+
+    const statusOrder = { pending: 0, confirmed: 1, in_progress: 2, completed: 3 };
+    const currentOrder = statusOrder[b.status] ?? -1;
+    const isCancelled  = b.status === 'cancelled';
+
+    // Build timeline HTML
+    let timelineHtml = '';
+    if (isCancelled) {
+      // Show all steps greyed, with a cancelled indicator
+      steps.forEach(step => {
+        timelineHtml += `
+          <div class="timeline-step">
+            <div class="timeline-dot" style="opacity:.4;">${step.icon}</div>
+            <div class="timeline-label" style="opacity:.4;">${escHtml(step.label)}</div>
+          </div>`;
+      });
+    } else {
+      steps.forEach((step, i) => {
+        const stepOrder = statusOrder[step.key];
+        let cls = '';
+        if (stepOrder < currentOrder) cls = 'done';
+        else if (stepOrder === currentOrder) cls = 'active';
+        timelineHtml += `
+          <div class="timeline-step ${cls}">
+            <div class="timeline-dot">${cls === 'done' ? '✓' : step.icon}</div>
+            <div class="timeline-label">${escHtml(step.label)}</div>
+          </div>`;
+      });
+    }
+
+    // Format date
+    const dateObj = new Date(b.preferred_date + 'T12:00:00');
+    const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Format created_at
+    const created = new Date(b.created_at.replace(' ', 'T'));
+    const createdStr = created.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+                       ' ' + created.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    const statusLabel = statusLabels[b.status] || b.status;
+
+    const cancelledBanner = isCancelled ? `
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:14px 20px;margin-bottom:20px;color:#991b1b;font-size:.88rem;">
+        ⚠️ This booking has been <strong>cancelled</strong>. Please contact us to reschedule.
+      </div>` : '';
+
+    document.getElementById('result').innerHTML = `
+      <div class="booking-result">
+        <div class="booking-result-header">
+          <div>
+            <div class="booking-ref">Ref: ${escHtml(b.reference)}</div>
+            <div class="booking-service">${escHtml(b.service_type)}</div>
+          </div>
+          <span class="status-badge status-${escHtml(b.status)}">${escHtml(statusLabel)}</span>
+        </div>
+
+        <div class="timeline-section">
+          <div class="timeline-title">${isCancelled ? 'Booking Cancelled' : 'Booking Progress'}</div>
+          ${cancelledBanner}
+          <div class="timeline">${timelineHtml}</div>
+        </div>
+
+        <div class="details-section">
+          <div class="details-title">Appointment Details</div>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">Service Type</div>
+              <div class="detail-value">${escHtml(b.service_type)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Appointment Date</div>
+              <div class="detail-value">${escHtml(dateStr)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Time Slot</div>
+              <div class="detail-value">${escHtml(b.time_slot)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Customer Name</div>
+              <div class="detail-value">${escHtml(b.customer_name)}</div>
+            </div>
+            <div class="detail-item full">
+              <div class="detail-label">Service Address</div>
+              <div class="detail-value">${escHtml(b.address)}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Booked On</div>
+              <div class="detail-value">${escHtml(createdStr)}</div>
+            </div>
+            ${b.admin_notes ? `
+            <div class="detail-item full">
+              <div class="detail-label">Notes from our team</div>
+              <div class="detail-value">${escHtml(b.admin_notes)}</div>
+            </div>` : ''}
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <a href="confirmation.php?ref=${encodeURIComponent(b.reference)}" class="btn btn-primary">
+            📄 View Full Confirmation
+          </a>
+          <a href="index.php#booking" class="btn btn-outline">
+            📅 Book Another Service
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

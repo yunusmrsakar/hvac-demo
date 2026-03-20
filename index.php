@@ -1,0 +1,2146 @@
+<?php
+session_start();
+require_once __DIR__ . '/includes/config.php';
+?><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><?php echo htmlspecialchars(APP_NAME); ?> – Professional AC &amp; Refrigeration Services</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #1a237e;
+      --navy-dark: #0d1257;
+      --navy-light: #283593;
+      --cyan:   #00bcd4;
+      --cyan-dark: #0097a7;
+      --cyan-light: #e0f7fa;
+      --white:  #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --success: #10b981;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow:    0 4px 16px rgba(0,0,0,.10);
+      --shadow-lg: 0 10px 40px rgba(0,0,0,.15);
+      --radius: 12px;
+      --radius-lg: 20px;
+      --transition: .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      color: var(--gray-800);
+      background: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ===================== UTILITIES ===================== */
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    .section-tag {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--cyan-dark);
+      background: var(--cyan-light);
+      padding: 4px 14px;
+      border-radius: 50px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--gray-600);
+      max-width: 560px;
+      margin: 0 auto 56px;
+    }
+
+    .text-center { text-align: center; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      padding: 14px 30px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: var(--white);
+      box-shadow: 0 4px 20px rgba(0,188,212,.35);
+    }
+    .btn-primary:hover {
+      background: var(--cyan-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,188,212,.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan);
+      border: 2px solid var(--cyan);
+    }
+    .btn-outline:hover {
+      background: var(--cyan);
+      color: var(--white);
+      transform: translateY(-2px);
+    }
+
+    .btn-white {
+      background: var(--white);
+      color: var(--navy);
+    }
+    .btn-white:hover {
+      background: var(--cyan-light);
+      transform: translateY(-2px);
+    }
+
+    /* ===================== SCROLL ANIMATIONS ===================== */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-up:nth-child(2) { transition-delay: .1s; }
+    .fade-up:nth-child(3) { transition-delay: .2s; }
+    .fade-up:nth-child(4) { transition-delay: .3s; }
+
+    /* ===================== NAVBAR ===================== */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 0 0;
+      transition: var(--transition);
+    }
+
+    #navbar.scrolled {
+      background: rgba(26,35,126,.97);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 20px rgba(0,0,0,.2);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: var(--cyan);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .logo-text span { color: var(--cyan); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,.85);
+      font-size: .9rem;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--white);
+      background: rgba(255,255,255,.12);
+    }
+
+    .nav-links a.active::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 20px; height: 2px;
+      background: var(--cyan);
+      border-radius: 2px;
+    }
+
+    .nav-cta { margin-left: 12px; }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      border: none;
+      background: none;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--white);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Mobile nav */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 72px; left: 0; right: 0;
+      background: var(--navy-dark);
+      padding: 16px 24px 24px;
+      z-index: 999;
+      border-top: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .mobile-menu.open { display: block; }
+
+    .mobile-menu ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+
+    .mobile-menu ul a {
+      display: block;
+      color: rgba(255,255,255,.85);
+      font-size: .95rem;
+      font-weight: 500;
+      padding: 12px 16px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .mobile-menu ul a:hover { background: rgba(255,255,255,.1); color: var(--white); }
+
+    /* ===================== HERO ===================== */
+    #hero {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 50%, #1565c0 100%);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 72px;
+    }
+
+    .hero-bg-shapes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity: .07;
+      background: var(--cyan);
+    }
+
+    .shape-1 { width: 500px; height: 500px; top: -120px; right: -100px; }
+    .shape-2 { width: 300px; height: 300px; bottom: 80px; left: -80px; opacity: .05; }
+    .shape-3 { width: 180px; height: 180px; bottom: 200px; right: 15%; opacity: .1; }
+
+    .wave-lines {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+    }
+
+    .wave-lines svg {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .hero-visual {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .ac-unit {
+      width: 280px;
+      height: 190px;
+      background: linear-gradient(145deg, #e8f4fd, #cce7f5);
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.1);
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .ac-vents {
+      position: absolute;
+      bottom: 24px; left: 0; right: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 0 24px;
+    }
+
+    .ac-vent {
+      height: 4px;
+      background: rgba(26,35,126,.15);
+      border-radius: 2px;
+    }
+
+    .ac-panel {
+      position: absolute;
+      top: 16px; left: 24px; right: 24px;
+      height: 60px;
+      background: rgba(26,35,126,.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 0 16px;
+    }
+
+    .ac-led {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    .ac-led:nth-child(2) { animation-delay: .5s; background: #4caf50; }
+    .ac-led:nth-child(3) { animation-delay: 1s; background: #ff9800; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    .ac-brand {
+      position: absolute;
+      top: 36px; left: 40px;
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      opacity: .5;
+    }
+
+    .air-streams {
+      position: absolute;
+      bottom: -60px; left: 0; right: 0;
+      display: flex;
+      justify-content: space-around;
+      padding: 0 30px;
+    }
+
+    .air-stream {
+      width: 3px;
+      height: 50px;
+      background: linear-gradient(to bottom, var(--cyan), transparent);
+      border-radius: 2px;
+      animation: airflow 1.5s ease-in-out infinite;
+      opacity: .6;
+    }
+
+    .air-stream:nth-child(2) { animation-delay: .3s; height: 40px; }
+    .air-stream:nth-child(3) { animation-delay: .6s; height: 55px; }
+    .air-stream:nth-child(4) { animation-delay: .2s; height: 35px; }
+    .air-stream:nth-child(5) { animation-delay: .8s; height: 48px; }
+
+    @keyframes airflow {
+      0% { transform: translateY(-5px); opacity: .6; }
+      100% { transform: translateY(10px); opacity: 0; }
+    }
+
+    .snowflakes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .snowflake {
+      position: absolute;
+      color: rgba(255,255,255,.4);
+      font-size: 1rem;
+      animation: snowfall linear infinite;
+      top: -20px;
+    }
+
+    .snowflake:nth-child(1)  { left: 10%; animation-duration: 6s; animation-delay: 0s;   font-size: .8rem; }
+    .snowflake:nth-child(2)  { left: 25%; animation-duration: 8s; animation-delay: 1s;   font-size: 1.2rem; }
+    .snowflake:nth-child(3)  { left: 40%; animation-duration: 7s; animation-delay: 2s;   font-size: .9rem; }
+    .snowflake:nth-child(4)  { left: 60%; animation-duration: 5s; animation-delay: .5s;  font-size: 1.1rem; }
+    .snowflake:nth-child(5)  { left: 75%; animation-duration: 9s; animation-delay: 1.5s; font-size: .7rem; }
+    .snowflake:nth-child(6)  { left: 88%; animation-duration: 6.5s; animation-delay: 3s; font-size: 1rem; }
+
+    @keyframes snowfall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
+
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 60px;
+      padding: 80px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,188,212,.18);
+      border: 1px solid rgba(0,188,212,.3);
+      color: #80deea;
+      font-size: .82rem;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+      letter-spacing: .04em;
+    }
+
+    .hero-badge .dot {
+      width: 7px; height: 7px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--cyan);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    .hero-title {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.12;
+      margin-bottom: 20px;
+    }
+
+    .hero-title .highlight { color: var(--cyan); }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,.75);
+      max-width: 480px;
+      margin-bottom: 36px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 52px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: .8rem;
+      color: rgba(255,255,255,.6);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* ===================== SERVICES ===================== */
+    #services {
+      padding: 100px 0;
+      background: var(--gray-50);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+    }
+
+    .service-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 36px 28px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--navy), var(--cyan));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: var(--transition);
+    }
+
+    .service-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+      border-color: transparent;
+    }
+
+    .service-card:hover::before { transform: scaleX(1); }
+
+    .service-icon {
+      width: 68px; height: 68px;
+      background: var(--cyan-light);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 24px;
+      transition: var(--transition);
+    }
+
+    .service-card:hover .service-icon {
+      background: var(--cyan);
+      transform: scale(1.05);
+    }
+
+    .service-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+
+    .service-desc {
+      font-size: .9rem;
+      color: var(--gray-600);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .service-features {
+      list-style: none;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .service-features li {
+      font-size: .85rem;
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .service-features li::before {
+      content: '✓';
+      color: var(--cyan-dark);
+      font-weight: 700;
+      font-size: .9rem;
+    }
+
+    .service-price {
+      font-size: .85rem;
+      color: var(--gray-400);
+      margin-bottom: 16px;
+    }
+
+    .service-price strong {
+      font-size: 1.25rem;
+      color: var(--navy);
+      font-weight: 700;
+    }
+
+    /* ===================== HOW IT WORKS ===================== */
+    #how-it-works {
+      padding: 100px 0;
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy));
+      position: relative;
+      overflow: hidden;
+    }
+
+    #how-it-works .section-title { color: var(--white); }
+    #how-it-works .section-sub { color: rgba(255,255,255,.65); }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      position: relative;
+    }
+
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 44px;
+      left: calc(16.66% + 20px);
+      right: calc(16.66% + 20px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), rgba(0,188,212,.2), var(--cyan));
+      z-index: 0;
+    }
+
+    .step-card {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-number {
+      width: 88px; height: 88px;
+      background: rgba(0,188,212,.15);
+      border: 2px solid rgba(0,188,212,.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 2rem;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .step-card:hover .step-number {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      transform: scale(1.08);
+      box-shadow: 0 0 30px rgba(0,188,212,.4);
+    }
+
+    .step-num-badge {
+      position: absolute;
+      top: -6px; right: -6px;
+      width: 26px; height: 26px;
+      background: var(--cyan);
+      color: var(--white);
+      font-size: .72rem;
+      font-weight: 700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .step-desc {
+      font-size: .88rem;
+      color: rgba(255,255,255,.6);
+      line-height: 1.65;
+    }
+
+    /* ===================== BOOKING ===================== */
+    #booking {
+      padding: 100px 0;
+      background: var(--white);
+    }
+
+    .booking-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 60px;
+      align-items: start;
+    }
+
+    .booking-info .section-tag { margin-bottom: 12px; }
+    .booking-info .section-title { text-align: left; margin-bottom: 16px; }
+
+    .booking-info p {
+      color: var(--gray-600);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .contact-items {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .contact-icon {
+      width: 44px; height: 44px;
+      background: var(--cyan-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .contact-label { font-size: .78rem; color: var(--gray-400); font-weight: 500; }
+    .contact-value { font-size: .95rem; color: var(--navy); font-weight: 600; }
+
+    .booking-form-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 44px 40px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--gray-200);
+    }
+
+    .form-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--gray-100);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      letter-spacing: .02em;
+    }
+
+    .form-group label .req { color: #ef4444; margin-left: 2px; }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: .9rem;
+      color: var(--gray-800);
+      background: var(--gray-50);
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      outline: none;
+      transition: var(--transition);
+      -webkit-appearance: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--cyan);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(0,188,212,.12);
+    }
+
+    .form-control.error {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .form-control::placeholder { color: var(--gray-400); }
+
+    .error-msg {
+      font-size: .77rem;
+      color: #ef4444;
+      font-weight: 500;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .form-submit { margin-top: 8px; }
+
+    .btn-submit {
+      width: 100%;
+      justify-content: center;
+      padding: 16px;
+      font-size: 1rem;
+      border-radius: 12px;
+    }
+
+    /* ===================== TESTIMONIALS ===================== */
+    #testimonials {
+      padding: 100px 0;
+      background: var(--gray-50);
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .testi-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+      transition: var(--transition);
+    }
+
+    .testi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .testi-quote {
+      font-size: 3rem;
+      color: var(--cyan-light);
+      line-height: 1;
+      margin-bottom: 4px;
+      font-family: Georgia, serif;
+    }
+
+    .testi-text {
+      font-size: .93rem;
+      color: var(--gray-600);
+      line-height: 1.7;
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .testi-stars {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 18px;
+    }
+
+    .star { color: #f59e0b; font-size: 1rem; }
+
+    .testi-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--navy), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--white);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .author-name {
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--navy);
+    }
+
+    .author-role {
+      font-size: .78rem;
+      color: var(--gray-400);
+    }
+
+    /* ===================== ABOUT ===================== */
+    #about {
+      padding: 100px 0;
+      background: var(--white);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .about-card-main {
+      background: linear-gradient(135deg, var(--navy), #1565c0);
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .about-card-main::after {
+      content: '❄';
+      position: absolute;
+      bottom: -20px; right: -10px;
+      font-size: 8rem;
+      opacity: .06;
+    }
+
+    .about-card-stat { margin-bottom: 32px; }
+
+    .about-stat-num {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+    }
+
+    .about-stat-label {
+      font-size: .9rem;
+      color: rgba(255,255,255,.7);
+      margin-top: 4px;
+    }
+
+    .about-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 24px;
+    }
+
+    .about-badge {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.9);
+      font-size: .78rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 50px;
+    }
+
+    .about-card-float {
+      position: absolute;
+      bottom: -24px; right: -24px;
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 200px;
+    }
+
+    .float-icon {
+      width: 48px; height: 48px;
+      background: var(--cyan-light);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .float-label { font-size: .75rem; color: var(--gray-400); }
+    .float-value { font-size: 1.1rem; font-weight: 700; color: var(--navy); }
+
+    .about-visual { position: relative; }
+    .about-content .section-tag { margin-bottom: 12px; }
+    .about-content .section-title { text-align: left; margin-bottom: 20px; }
+
+    .about-content p {
+      color: var(--gray-600);
+      line-height: 1.75;
+      margin-bottom: 20px;
+    }
+
+    .about-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .about-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: .93rem;
+      color: var(--gray-700);
+    }
+
+    .about-list li .check {
+      width: 22px; height: 22px;
+      background: var(--cyan-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      color: var(--cyan-dark);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ===================== CONTACT ===================== */
+    #contact {
+      padding: 80px 0;
+      background: linear-gradient(135deg, var(--navy-dark), var(--navy));
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .contact-card {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      padding: 28px;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .contact-card:hover {
+      background: rgba(255,255,255,.14);
+      transform: translateY(-4px);
+    }
+
+    .contact-card-icon { font-size: 2rem; margin-bottom: 12px; }
+
+    .contact-card-label {
+      font-size: .78rem;
+      color: rgba(255,255,255,.5);
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .contact-card-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    /* ===================== FOOTER ===================== */
+    footer {
+      background: var(--navy-dark);
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 48px 0 32px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 48px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+
+    .footer-tagline {
+      font-size: .88rem;
+      color: rgba(255,255,255,.5);
+      line-height: 1.7;
+      max-width: 260px;
+      margin-bottom: 24px;
+    }
+
+    .social-links { display: flex; gap: 10px; }
+
+    .social-link {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,.08);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: rgba(255,255,255,.7);
+      transition: var(--transition);
+    }
+
+    .social-link:hover {
+      background: var(--cyan);
+      color: var(--white);
+      transform: translateY(-3px);
+    }
+
+    .footer-col-title {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-links a {
+      font-size: .88rem;
+      color: rgba(255,255,255,.5);
+      transition: var(--transition);
+    }
+
+    .footer-links a:hover {
+      color: var(--cyan);
+      padding-left: 4px;
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      font-size: .82rem;
+      color: rgba(255,255,255,.35);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* ===================== MODAL ===================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 48px 44px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 80px rgba(0,0,0,.25);
+      transform: scale(.9) translateY(20px);
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-icon {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 24px;
+      box-shadow: 0 8px 24px rgba(16,185,129,.2);
+    }
+
+    .modal-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+
+    .modal-sub {
+      font-size: .93rem;
+      color: var(--gray-600);
+      margin-bottom: 28px;
+      line-height: 1.65;
+    }
+
+    .modal-details {
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      text-align: left;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .87rem;
+    }
+
+    .modal-row-label { color: var(--gray-400); font-weight: 500; }
+    .modal-row-value { color: var(--navy); font-weight: 600; }
+
+    .modal-id {
+      font-size: .8rem;
+      color: var(--gray-400);
+      margin-bottom: 24px;
+    }
+
+    .modal-id span { color: var(--cyan-dark); font-weight: 600; }
+
+    .modal-close { width: 100%; justify-content: center; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===================== SCROLL TO TOP ===================== */
+    #scroll-top {
+      position: fixed;
+      bottom: 32px; right: 32px;
+      width: 44px; height: 44px;
+      background: var(--cyan);
+      color: var(--white);
+      border: none;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,188,212,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 500;
+    }
+
+    #scroll-top.show { opacity: 1; pointer-events: all; }
+    #scroll-top:hover { transform: translateY(-3px); background: var(--cyan-dark); }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1024px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .about-grid { gap: 48px; }
+    }
+
+    @media (max-width: 900px) {
+      .hero-content { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+      .hero-visual { margin: 0 auto; }
+      .hero-actions { justify-content: center; }
+      .hero-sub { margin-left: auto; margin-right: auto; }
+      .hero-stats { justify-content: center; }
+      .booking-wrapper { grid-template-columns: 1fr; gap: 40px; }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-visual { max-width: 420px; margin: 0 auto; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid::before { display: none; }
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: flex; }
+      .form-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .ac-unit { width: 220px; height: 150px; }
+      .hero-stats { flex-wrap: wrap; gap: 20px; }
+    }
+
+    @media (max-width: 480px) {
+      .booking-form-card { padding: 28px 20px; }
+      .modal { padding: 36px 24px; }
+      .hero-stats { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav id="navbar">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">
+        <div class="logo-icon">❄️</div>
+        <div class="logo-text">CoolBreeze <span>HVAC</span></div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#hero" class="active">Home</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#booking">Booking</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="track.php">Track Booking</a></li>
+      </ul>
+
+      <a href="#booking" class="btn btn-primary nav-cta">Book Now</a>
+
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <ul>
+    <li><a href="#hero" onclick="closeMobileMenu()">Home</a></li>
+    <li><a href="#services" onclick="closeMobileMenu()">Services</a></li>
+    <li><a href="#booking" onclick="closeMobileMenu()">Booking</a></li>
+    <li><a href="#about" onclick="closeMobileMenu()">About</a></li>
+    <li><a href="#contact" onclick="closeMobileMenu()">Contact</a></li>
+    <li><a href="track.php" onclick="closeMobileMenu()">Track Booking</a></li>
+  </ul>
+  <a href="#booking" class="btn btn-primary" onclick="closeMobileMenu()" style="width:100%;justify-content:center;">Book a Service</a>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<section id="hero">
+  <div class="hero-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <div class="snowflakes">
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+    <div class="snowflake">❄</div>
+    <div class="snowflake">❅</div>
+    <div class="snowflake">❆</div>
+  </div>
+
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <div class="dot"></div>
+          #1 Rated HVAC Company in the Region
+        </div>
+        <h1 class="hero-title">
+          Stay Cool,<br>Stay <span class="highlight">Comfortable</span><br>Year Round
+        </h1>
+        <p class="hero-sub">
+          Professional AC installation, maintenance, repair, and refrigeration services. Fast response, certified technicians, and unbeatable quality — guaranteed.
+        </p>
+        <div class="hero-actions">
+          <a href="#booking" class="btn btn-primary">📅 Book a Service</a>
+          <a href="#services" class="btn btn-outline" style="color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.35);">
+            View Services
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-number">2,400+</div>
+            <div class="stat-label">Happy Customers</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">15+</div>
+            <div class="stat-label">Years Experience</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">4.9★</div>
+            <div class="stat-label">Average Rating</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Emergency Support</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="ac-unit">
+          <div class="ac-panel">
+            <div class="ac-led"></div>
+            <div class="ac-led"></div>
+            <div class="ac-led"></div>
+          </div>
+          <div class="ac-brand">CoolBreeze Pro</div>
+          <div class="ac-vents">
+            <div class="ac-vent"></div>
+            <div class="ac-vent"></div>
+            <div class="ac-vent"></div>
+            <div class="ac-vent"></div>
+          </div>
+        </div>
+        <div class="air-streams">
+          <div class="air-stream"></div>
+          <div class="air-stream"></div>
+          <div class="air-stream"></div>
+          <div class="air-stream"></div>
+          <div class="air-stream"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SERVICES ==================== -->
+<section id="services">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-tag">What We Offer</div>
+      <h2 class="section-title">Expert HVAC Services<br>You Can Rely On</h2>
+      <p class="section-sub">From residential to commercial, we handle all your cooling and refrigeration needs with speed, precision, and care.</p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card fade-up">
+        <div class="service-icon">🌬️</div>
+        <div class="service-name">AC Installation</div>
+        <div class="service-desc">Brand-new air conditioning system installation tailored to your space and budget, done right the first time.</div>
+        <ul class="service-features">
+          <li>Site assessment &amp; unit sizing</li>
+          <li>All brands &amp; models supported</li>
+          <li>Full electrical &amp; piping setup</li>
+          <li>2-year installation warranty</li>
+        </ul>
+        <div class="service-price">Starting from <strong>$299</strong></div>
+        <a href="#booking" class="btn btn-primary" style="font-size:.85rem;padding:10px 22px;">Book This Service</a>
+      </div>
+
+      <div class="service-card fade-up">
+        <div class="service-icon">🔧</div>
+        <div class="service-name">AC Maintenance</div>
+        <div class="service-desc">Regular servicing and tune-ups to keep your system running at peak efficiency and extend its lifespan.</div>
+        <ul class="service-features">
+          <li>Filter cleaning &amp; replacement</li>
+          <li>Coil and drain line cleaning</li>
+          <li>Refrigerant level check</li>
+          <li>Performance optimization</li>
+        </ul>
+        <div class="service-price">Starting from <strong>$89</strong></div>
+        <a href="#booking" class="btn btn-primary" style="font-size:.85rem;padding:10px 22px;">Book This Service</a>
+      </div>
+
+      <div class="service-card fade-up">
+        <div class="service-icon">⚡</div>
+        <div class="service-name">AC Repair</div>
+        <div class="service-desc">Fast, reliable diagnosis and repair for any AC issue — from compressor failures to refrigerant leaks.</div>
+        <ul class="service-features">
+          <li>Same-day emergency response</li>
+          <li>Diagnostic included in repair</li>
+          <li>Genuine OEM spare parts</li>
+          <li>90-day repair guarantee</li>
+        </ul>
+        <div class="service-price">Starting from <strong>$129</strong></div>
+        <a href="#booking" class="btn btn-primary" style="font-size:.85rem;padding:10px 22px;">Book This Service</a>
+      </div>
+
+      <div class="service-card fade-up">
+        <div class="service-icon">🧊</div>
+        <div class="service-name">Refrigeration Services</div>
+        <div class="service-desc">Commercial and industrial refrigeration installation, maintenance, and repair for food service businesses.</div>
+        <ul class="service-features">
+          <li>Walk-in coolers &amp; freezers</li>
+          <li>Display case servicing</li>
+          <li>Temperature calibration</li>
+          <li>HACCP compliance check</li>
+        </ul>
+        <div class="service-price">Starting from <strong>$199</strong></div>
+        <a href="#booking" class="btn btn-primary" style="font-size:.85rem;padding:10px 22px;">Book This Service</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-tag" style="background:rgba(0,188,212,.15);color:#80deea;">How It Works</div>
+      <h2 class="section-title">Book Your Service in<br>3 Simple Steps</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.6);max-width:480px;margin-bottom:60px;">We've made the booking process as simple as possible so you can get the help you need without any hassle.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card fade-up">
+        <div class="step-number">
+          🛠️
+          <div class="step-num-badge">1</div>
+        </div>
+        <div class="step-title">Choose Your Service</div>
+        <div class="step-desc">Select the type of service you need — installation, maintenance, repair, or refrigeration — and tell us about your system.</div>
+      </div>
+
+      <div class="step-card fade-up">
+        <div class="step-number">
+          📅
+          <div class="step-num-badge">2</div>
+        </div>
+        <div class="step-title">Pick Date &amp; Time</div>
+        <div class="step-desc">Choose your preferred appointment date and a convenient time slot that works with your schedule. We'll confirm within minutes.</div>
+      </div>
+
+      <div class="step-card fade-up">
+        <div class="step-number">
+          ✅
+          <div class="step-num-badge">3</div>
+        </div>
+        <div class="step-title">Confirm Booking</div>
+        <div class="step-desc">Receive an instant confirmation with your booking ID. Our certified technician will arrive on time, ready to get the job done.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== BOOKING FORM ==================== -->
+<section id="booking">
+  <div class="container">
+    <div class="booking-wrapper">
+      <div class="booking-info fade-up">
+        <div class="section-tag">Book a Service</div>
+        <h2 class="section-title" style="text-align:left;">Schedule Your<br>Appointment Today</h2>
+        <p>Fill out the form and our team will confirm your booking within the hour. Emergency services available 24/7 — just call us directly.</p>
+
+        <div class="contact-items">
+          <div class="contact-item">
+            <div class="contact-icon">📞</div>
+            <div>
+              <div class="contact-label">Call Us Anytime</div>
+              <div class="contact-value">+1 (555) 123-4567</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">✉️</div>
+            <div>
+              <div class="contact-label">Email Support</div>
+              <div class="contact-value">hello@coolbreezhvac.com</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">📍</div>
+            <div>
+              <div class="contact-label">Service Area</div>
+              <div class="contact-value">Metro Area &amp; Surrounding 50mi</div>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">🕐</div>
+            <div>
+              <div class="contact-label">Business Hours</div>
+              <div class="contact-value">Mon–Sat 8am–8pm | Emergency 24/7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-form-card fade-up">
+        <div class="form-title">📋 Service Booking Request</div>
+        <form id="bookingForm" novalidate>
+          <div class="form-grid">
+
+            <div class="form-group full">
+              <label for="service">Service Type <span class="req">*</span></label>
+              <select class="form-control" id="service" name="service">
+                <option value="">— Select a service —</option>
+                <option value="AC Installation">AC Installation</option>
+                <option value="AC Maintenance">AC Maintenance</option>
+                <option value="AC Repair">AC Repair</option>
+                <option value="Refrigeration Services">Refrigeration Services</option>
+              </select>
+              <div class="error-msg" id="err-service">Please select a service type.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="name">Full Name <span class="req">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="John Smith" />
+              <div class="error-msg" id="err-name">Please enter your full name.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number <span class="req">*</span></label>
+              <input type="tel" class="form-control" id="phone" name="phone" placeholder="+1 (555) 000-0000" />
+              <div class="error-msg" id="err-phone">Please enter a valid phone number.</div>
+            </div>
+
+            <div class="form-group full">
+              <label for="email">Email Address <span class="req">*</span></label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="john@example.com" />
+              <div class="error-msg" id="err-email">Please enter a valid email address.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="date">Preferred Date <span class="req">*</span></label>
+              <input type="date" class="form-control" id="date" name="date" />
+              <div class="error-msg" id="err-date">Please select a preferred date.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="time">Preferred Time Slot <span class="req">*</span></label>
+              <select class="form-control" id="time" name="time">
+                <option value="">— Choose a slot —</option>
+                <option value="Morning (8am – 12pm)">Morning (8am – 12pm)</option>
+                <option value="Afternoon (12pm – 5pm)">Afternoon (12pm – 5pm)</option>
+                <option value="Evening (5pm – 8pm)">Evening (5pm – 8pm)</option>
+              </select>
+              <div class="error-msg" id="err-time">Please select a time slot.</div>
+            </div>
+
+            <div class="form-group full">
+              <label for="address">Service Address <span class="req">*</span></label>
+              <textarea class="form-control" id="address" name="address" placeholder="123 Main Street, City, State, ZIP" rows="2"></textarea>
+              <div class="error-msg" id="err-address">Please enter your service address.</div>
+            </div>
+
+            <div class="form-group full">
+              <label for="notes">Additional Notes</label>
+              <textarea class="form-control" id="notes" name="notes" placeholder="Describe your issue or any special instructions for our technician..." rows="3"></textarea>
+            </div>
+
+            <div class="form-group full form-submit">
+              <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
+                📅 Confirm My Booking
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TESTIMONIALS ==================== -->
+<section id="testimonials">
+  <div class="container">
+    <div class="text-center">
+      <div class="section-tag">Customer Reviews</div>
+      <h2 class="section-title">What Our Customers Say</h2>
+      <p class="section-sub">Don't just take our word for it — hear from the hundreds of satisfied customers we've served.</p>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testi-card fade-up">
+        <div class="testi-quote">"</div>
+        <div class="testi-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="testi-text">CoolBreeze HVAC installed our new AC system in under 4 hours. The technician was professional, clean, and explained everything clearly. Our home has never felt this comfortable. Absolutely worth every penny!</p>
+        <div class="testi-author">
+          <div class="author-avatar">S</div>
+          <div>
+            <div class="author-name">Sarah Mitchell</div>
+            <div class="author-role">Homeowner · AC Installation</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card fade-up">
+        <div class="testi-quote">"</div>
+        <div class="testi-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="testi-text">My restaurant walk-in freezer broke down on a Friday evening — a complete nightmare. CoolBreeze had a technician out within 2 hours and got it running before midnight. Saved my entire weekend food stock. Incredible service!</p>
+        <div class="testi-author">
+          <div class="author-avatar">M</div>
+          <div>
+            <div class="author-name">Marcus Thompson</div>
+            <div class="author-role">Restaurant Owner · Refrigeration Repair</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card fade-up">
+        <div class="testi-quote">"</div>
+        <div class="testi-stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+        </div>
+        <p class="testi-text">I've been using CoolBreeze for annual maintenance for 3 years now. My energy bill dropped by 20% after the first service. They're punctual, thorough, and always honest about what actually needs fixing. Highly recommend!</p>
+        <div class="testi-author">
+          <div class="author-avatar">L</div>
+          <div>
+            <div class="author-name">Linda Reyes</div>
+            <div class="author-role">Property Manager · AC Maintenance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ABOUT ==================== -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual fade-up">
+        <div class="about-card-main">
+          <div class="about-card-stat">
+            <div class="about-stat-num">15+</div>
+            <div class="about-stat-label">Years of trusted HVAC excellence</div>
+          </div>
+          <div class="about-card-stat">
+            <div class="about-stat-num">98%</div>
+            <div class="about-stat-label">Customer satisfaction rate</div>
+          </div>
+          <div class="about-badges">
+            <span class="about-badge">✅ EPA Certified</span>
+            <span class="about-badge">🏅 Licensed &amp; Insured</span>
+            <span class="about-badge">⭐ NATE Certified Techs</span>
+            <span class="about-badge">🔒 Background Checked</span>
+          </div>
+        </div>
+        <div class="about-card-float">
+          <div class="float-icon">🏆</div>
+          <div>
+            <div class="float-label">Industry Award</div>
+            <div class="float-value">Best HVAC 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-content fade-up">
+        <div class="section-tag">About CoolBreeze HVAC</div>
+        <h2 class="section-title" style="text-align:left;">Your Comfort Is<br>Our Business</h2>
+        <p>Founded in 2009, CoolBreeze HVAC has grown from a small local operation to the region's most trusted name in air conditioning and refrigeration services. We serve thousands of residential and commercial customers every year.</p>
+        <p>Our team of NATE-certified technicians brings expertise, professionalism, and a genuine commitment to quality on every job — big or small.</p>
+
+        <ul class="about-list">
+          <li><div class="check">✓</div> Fully licensed, insured, and EPA-certified technicians</li>
+          <li><div class="check">✓</div> Upfront pricing — no hidden fees, ever</li>
+          <li><div class="check">✓</div> 24/7 emergency repair services available</li>
+          <li><div class="check">✓</div> We service all major brands: Daikin, Mitsubishi, LG, Carrier &amp; more</li>
+          <li><div class="check">✓</div> Satisfaction guaranteed or your money back</li>
+        </ul>
+
+        <a href="#booking" class="btn btn-primary">Schedule a Service Today</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CONTACT ==================== -->
+<section id="contact">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:48px;">
+      <div class="section-tag" style="background:rgba(0,188,212,.15);color:#80deea;">Get In Touch</div>
+      <h2 class="section-title" style="color:var(--white);">Ready to Get Started?</h2>
+      <p style="color:rgba(255,255,255,.6);max-width:480px;margin:0 auto;">Contact us today and experience the CoolBreeze difference. We're always here when you need us.</p>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="contact-card-icon">📞</div>
+        <div class="contact-card-label">Phone</div>
+        <div class="contact-card-value">+1 (555) 123-4567</div>
+      </div>
+      <div class="contact-card">
+        <div class="contact-card-icon">✉️</div>
+        <div class="contact-card-label">Email</div>
+        <div class="contact-card-value">hello@coolbreezhvac.com</div>
+      </div>
+      <div class="contact-card">
+        <div class="contact-card-icon">📍</div>
+        <div class="contact-card-label">Location</div>
+        <div class="contact-card-value">456 Frost Avenue, Suite 200</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="#booking" class="btn btn-white" style="font-size:1rem;padding:16px 40px;">
+        📅 Book Your Service Now
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="logo-icon" style="width:34px;height:34px;font-size:1.1rem;">❄️</div>
+          CoolBreeze <span style="color:var(--cyan);">HVAC</span>
+        </div>
+        <p class="footer-tagline">Keeping homes and businesses cool and comfortable since 2009. Trusted by 2,400+ customers across the region.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="Facebook">𝐟</a>
+          <a href="#" class="social-link" aria-label="Instagram">📸</a>
+          <a href="#" class="social-link" aria-label="Twitter">𝕏</a>
+          <a href="#" class="social-link" aria-label="LinkedIn">in</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Services</div>
+        <ul class="footer-links">
+          <li><a href="#services">AC Installation</a></li>
+          <li><a href="#services">AC Maintenance</a></li>
+          <li><a href="#services">AC Repair</a></li>
+          <li><a href="#services">Refrigeration</a></li>
+          <li><a href="#services">Emergency Service</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#testimonials">Reviews</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Support</div>
+        <ul class="footer-links">
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Warranty Info</a></li>
+          <li><a href="track.php">Track Booking</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars(APP_NAME); ?>. All rights reserved.</div>
+      <div>🏅 EPA Certified &nbsp;·&nbsp; 🔒 Licensed &amp; Insured &nbsp;·&nbsp; ⭐ NATE Certified</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ==================== BOOKING SUCCESS MODAL ==================== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-icon">✅</div>
+    <h2 class="modal-title">Booking Confirmed!</h2>
+    <p class="modal-sub">Thank you! Your service request has been received. Our team will call you within 1 hour to confirm your appointment.</p>
+
+    <div class="modal-details" id="modal-details"></div>
+
+    <p class="modal-id">Booking Reference: <span id="modal-ref"></span></p>
+
+    <button class="btn btn-primary modal-close" id="modal-close-btn">
+      Done — Got It! 🎉
+    </button>
+  </div>
+</div>
+
+<!-- ==================== SCROLL TO TOP ==================== -->
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑</button>
+
+<script>
+  // ===== NAV SCROLL BEHAVIOR =====
+  const navbar   = document.getElementById('navbar');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const sections = document.querySelectorAll('section[id]');
+
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+
+    let current = '';
+    sections.forEach(sec => {
+      if (window.scrollY >= sec.offsetTop - 100) current = sec.id;
+    });
+
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+
+    document.getElementById('scroll-top').classList.toggle('show', window.scrollY > 400);
+  });
+
+  // ===== HAMBURGER =====
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobile-menu');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+
+  function closeMobileMenu() {
+    hamburger.classList.remove('open');
+    mobileMenu.classList.remove('open');
+  }
+
+  // ===== FADE-UP OBSERVER =====
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // ===== MIN DATE =====
+  const dateInput = document.getElementById('date');
+  const tomorrow  = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  dateInput.min = tomorrow.toISOString().split('T')[0];
+
+  // ===== FORM VALIDATION =====
+  const form = document.getElementById('bookingForm');
+
+  function validateField(id, errorId, validFn) {
+    const el  = document.getElementById(id);
+    const err = document.getElementById(errorId);
+    const ok  = validFn(el.value.trim());
+    el.classList.toggle('error', !ok);
+    err.classList.toggle('show', !ok);
+    return ok;
+  }
+
+  function isEmail(v)  { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function isPhone(v)  { return v.replace(/[\s\-\(\)\+]/g, '').length >= 7; }
+
+  // Remove error on input
+  form.querySelectorAll('.form-control').forEach(el => {
+    el.addEventListener('input', () => {
+      el.classList.remove('error');
+      const errEl = document.getElementById('err-' + el.id);
+      if (errEl) errEl.classList.remove('show');
+    });
+  });
+
+  // ===== FORM SUBMIT – FETCH TO api/book.php =====
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const v1 = validateField('service', 'err-service', v => v !== '');
+    const v2 = validateField('name',    'err-name',    v => v.length >= 2);
+    const v3 = validateField('phone',   'err-phone',   v => isPhone(v));
+    const v4 = validateField('email',   'err-email',   v => isEmail(v));
+    const v5 = validateField('date',    'err-date',    v => v !== '');
+    const v6 = validateField('time',    'err-time',    v => v !== '');
+    const v7 = validateField('address', 'err-address', v => v.length >= 8);
+
+    if (!(v1 && v2 && v3 && v4 && v5 && v6 && v7)) {
+      const firstErr = form.querySelector('.form-control.error');
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Collect data
+    const payload = {
+      service_type:   document.getElementById('service').value,
+      customer_name:  document.getElementById('name').value.trim(),
+      phone:          document.getElementById('phone').value.trim(),
+      email:          document.getElementById('email').value.trim(),
+      preferred_date: document.getElementById('date').value,
+      time_slot:      document.getElementById('time').value,
+      address:        document.getElementById('address').value.trim(),
+      notes:          document.getElementById('notes').value.trim(),
+    };
+
+    // Disable submit button
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+    try {
+      const res  = await fetch('api/book.php', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
+
+      // Populate modal
+      const dateObj = new Date(payload.preferred_date + 'T12:00:00');
+      const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      document.getElementById('modal-ref').textContent = data.reference;
+      document.getElementById('modal-details').innerHTML = `
+        <div class="modal-row">
+          <span class="modal-row-label">Service</span>
+          <span class="modal-row-value">${escHtml(payload.service_type)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-row-label">Name</span>
+          <span class="modal-row-value">${escHtml(data.name)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-row-label">Date</span>
+          <span class="modal-row-value">${dateStr}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-row-label">Time Slot</span>
+          <span class="modal-row-value">${escHtml(payload.time_slot)}</span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-row-label">Contact</span>
+          <span class="modal-row-value">${escHtml(payload.phone)}</span>
+        </div>
+      `;
+
+      // Show modal
+      document.getElementById('modal-overlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Auto-redirect to confirmation page after 2 seconds
+      const ref = data.reference;
+      setTimeout(() => {
+        window.location.href = 'confirmation.php?ref=' + encodeURIComponent(ref);
+      }, 2000);
+
+      // Reset form
+      form.reset();
+
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '📅 Confirm My Booking';
+    }
+  });
+
+  // ===== MODAL CLOSE =====
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+    document.body.style.overflow = '';
+    document.getElementById('booking').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  // Trigger initial scroll state
+  window.dispatchEvent(new Event('scroll'));
+</script>
+</body>
+</html>

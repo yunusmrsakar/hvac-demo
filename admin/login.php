@@ -1,0 +1,207 @@
+<?php
+session_start();
+require_once __DIR__ . '/../includes/config.php';
+
+// Already logged in
+if (!empty($_SESSION['admin'])) {
+    header('Location: index.php');
+    exit;
+}
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // ── Brute-force protection ───────────────────────────────────────────────
+    if (!isset($_SESSION['login_attempts'])) {
+        $_SESSION['login_attempts'] = 0;
+        $_SESSION['lockout_until']  = 0;
+    }
+
+    $now = time();
+
+    if ($now < $_SESSION['lockout_until']) {
+        $remaining = $_SESSION['lockout_until'] - $now;
+        $error = "Too many failed attempts. Please wait {$remaining} second(s) before trying again.";
+    } else {
+
+        $user = trim($_POST['username'] ?? '');
+        $pass = $_POST['password'] ?? '';
+
+        if ($user === ADMIN_USER && $pass === ADMIN_PASS) {
+            // Success — regenerate session ID to prevent fixation
+            session_regenerate_id(true);
+            $_SESSION['admin']          = true;
+            $_SESSION['login_attempts'] = 0;
+            $_SESSION['lockout_until']  = 0;
+            header('Location: index.php');
+            exit;
+        } else {
+            $_SESSION['login_attempts']++;
+            if ($_SESSION['login_attempts'] >= 5) {
+                $_SESSION['lockout_until']  = $now + 30;
+                $_SESSION['login_attempts'] = 0;
+                $error = 'Too many failed attempts. Account locked for 30 seconds.';
+            } else {
+                $remaining = 5 - $_SESSION['login_attempts'];
+                $error = 'Invalid username or password. ' . $remaining . ' attempt(s) remaining.';
+            }
+        }
+    }
+}
+?><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login – <?php echo htmlspecialchars(APP_NAME); ?></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a237e; --navy-dark: #0d1257; --navy-light: #283593;
+      --cyan: #00bcd4; --cyan-dark: #0097a7; --cyan-light: #e0f7fa;
+      --white: #ffffff;
+      --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+      --gray-400: #94a3b8; --gray-600: #475569; --gray-800: #1e293b;
+      --shadow-lg: 0 10px 40px rgba(0,0,0,.2);
+      --radius: 12px; --radius-lg: 20px;
+      --transition: .3s cubic-bezier(.4,0,.2,1);
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 60%, #1565c0 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 52px 48px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .login-logo {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; margin-bottom: 8px;
+    }
+    .logo-icon {
+      width: 44px; height: 44px; background: var(--cyan);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .logo-text {
+      font-size: 1.3rem; font-weight: 800; color: var(--navy);
+    }
+    .logo-text span { color: var(--cyan); }
+
+    .login-subtitle {
+      text-align: center;
+      font-size: .82rem;
+      color: var(--gray-400);
+      margin-bottom: 36px;
+      font-weight: 500;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .form-group {
+      display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px;
+    }
+    .form-group label {
+      font-size: .82rem; font-weight: 600; color: var(--gray-600);
+    }
+    .form-control {
+      padding: 13px 16px;
+      font-family: 'Poppins', sans-serif; font-size: .92rem;
+      color: var(--gray-800); background: var(--gray-50);
+      border: 1.5px solid var(--gray-200); border-radius: 10px;
+      outline: none; transition: var(--transition);
+    }
+    .form-control:focus {
+      border-color: var(--cyan); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(0,188,212,.12);
+    }
+
+    .error-banner {
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: 10px; padding: 12px 16px;
+      color: #991b1b; font-size: .85rem; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .btn-login {
+      width: 100%; padding: 15px;
+      background: var(--cyan); color: var(--white);
+      font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 12px; cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px rgba(0,188,212,.35);
+      margin-top: 8px;
+    }
+    .btn-login:hover {
+      background: var(--cyan-dark); transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,188,212,.4);
+    }
+
+    .back-link {
+      display: block; text-align: center; margin-top: 24px;
+      font-size: .85rem; color: var(--gray-400); transition: var(--transition);
+    }
+    .back-link:hover { color: var(--cyan); }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">❄️</div>
+      <div class="logo-text">CoolBreeze <span>HVAC</span></div>
+    </div>
+    <div class="login-subtitle">Admin Portal</div>
+
+    <?php if ($error): ?>
+    <div class="error-banner">⚠️ <?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
+    <form method="POST" action="">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          class="form-control"
+          id="username"
+          name="username"
+          placeholder="admin"
+          autocomplete="username"
+          required
+          value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn-login">Sign In to Admin Panel</button>
+    </form>
+
+    <a href="../index.php" class="back-link">← Back to main site</a>
+  </div>
+</body>
+</html>
